@@ -244,6 +244,7 @@
                     font-size: calc(0.82rem * var(--font-multiplier));
                     cursor: pointer;
                     transition: background 120ms ease, border-color 120ms ease;
+                    color: #ffffff;
                 }
 
                 #fabtuner-widget .fabtuner-chip:hover {
@@ -318,20 +319,22 @@
                 <div class="fabtuner-section">
                     <div class="fabtuner-section-title">Input filtering</div>
                     <div class="fabtuner-slider-row">
-                        <div class="fabtuner-label" aria-hidden="true">Smoothing</div>
+                        <div class="fabtuner-label" aria-hidden="true">Stability guard</div>
                         <input
                             class="fabtuner-slider"
                             type="range"
                             min="0"
-                            max="0.9"
-                            step="0.05"
-                            value="0.35"
-                            data-fabtuner="smoothing"
-                            aria-label="Input smoothing factor"
+                            max="50"
+                            step="1"
+                            value="12"
+                            data-fabtuner="stability"
+                            aria-label="Maximum cents change accepted per frame"
                         />
-                        <div class="fabtuner-slider-value" data-fabtuner="smoothing-value">0.35</div>
+                        <div class="fabtuner-slider-value" data-fabtuner="stability-value">12¢</div>
                     </div>
-                    <div class="fabtuner-help">Higher values reduce jitter but react more slowly.</div>
+                    <div class="fabtuner-help">
+                        Limits sudden jumps. Set to 0 to disable (fast but jittery).
+                    </div>
                 </div>
 
                 <div class="fabtuner-section">
@@ -394,8 +397,8 @@
                     const applyTargetsBtn = root.querySelector('[data-fabtuner="apply-targets"]');
                     const targetsListEl = root.querySelector('[data-fabtuner="targets-list"]');
                     const targetStatusEl = root.querySelector('[data-fabtuner="target-status"]');
-                    const smoothingInput = root.querySelector('[data-fabtuner="smoothing"]');
-                    const smoothingValueEl = root.querySelector('[data-fabtuner="smoothing-value"]');
+                    const stabilityInput = root.querySelector('[data-fabtuner="stability"]');
+                    const stabilityValueEl = root.querySelector('[data-fabtuner="stability-value"]');
                     const guidanceSlider = root.querySelector('[data-fabtuner="guidance-slider"]');
                     const guidanceValueEl = root.querySelector('[data-fabtuner="guidance-value"]');
                     const guidanceHelperEl = root.querySelector('[data-fabtuner="guidance-helper"]');
@@ -407,8 +410,10 @@
                     let running = false;
                     let a4Ref = 440;
                     let targets = [];
-                    let smoothingAmount = parseFloat(smoothingInput.value) || 0;
-                    let filteredFreq = null;
+                    let stabilityThreshold = parseFloat(stabilityInput.value) || 0;
+                    let stableFreq = null;
+                    let pendingFreq = null;
+                    let pendingFrames = 0;
 
                     const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F",
                         "F#", "G", "G#", "A", "A#", "B"];
@@ -423,6 +428,54 @@
                         const freqFromMidi = a4Ref * Math.pow(2, (midiRounded - A4_MIDI) / 12);
                         const cents = 1200 * Math.log2(freq / freqFromMidi);
                         return { noteName, octave, cents, midiRounded, freqFromMidi };
+                    }
+
+                    function updateStableFrequency(freq) {
+                        if (!isFinite(freq) || freq <= 0) return null;
+
+                        if (stabilityThreshold <= 0) {
+                            stableFreq = freq;
+                            pendingFreq = null;
+                            pendingFrames = 0;
+                            return stableFreq;
+                        }
+
+                        if (stableFreq === null) {
+                            stableFreq = freq;
+                            return stableFreq;
+                        }
+
+                        const diffCents = 1200 * Math.log2(freq / stableFreq);
+
+                        if (Math.abs(diffCents) <= stabilityThreshold) {
+                            stableFreq = freq;
+                            pendingFreq = null;
+                            pendingFrames = 0;
+                            return stableFreq;
+                        }
+
+                        if (pendingFreq === null) {
+                            pendingFreq = freq;
+                            pendingFrames = 1;
+                            return stableFreq;
+                        }
+
+                        const pendingDiff = 1200 * Math.log2(freq / pendingFreq);
+
+                        if (Math.abs(pendingDiff) <= stabilityThreshold) {
+                            pendingFrames += 1;
+                        } else {
+                            pendingFreq = freq;
+                            pendingFrames = 1;
+                        }
+
+                        if (pendingFrames >= 4) {
+                            stableFreq = freq;
+                            pendingFreq = null;
+                            pendingFrames = 0;
+                        }
+
+                        return stableFreq;
                     }
 
                     function parseNoteToken(token) {
@@ -599,14 +652,12 @@
                         const freq = autoCorrelate(dataArray, sampleRate);
 
                         if (freq > 0 && isFinite(freq)) {
-                            if (filteredFreq === null) {
-                                filteredFreq = freq;
-                            } else {
-                                filteredFreq =
-                                    smoothingAmount * filteredFreq +
-                                    (1 - smoothingAmount) * freq;
+                            const displayFreq = updateStableFrequency(freq);
+
+                            if (!displayFreq) {
+                                requestAnimationFrame(loop);
+                                return;
                             }
-                            const displayFreq = filteredFreq;
 
                             freqEl.textContent = displayFreq.toFixed(2) + " Hz";
                             const { noteName, octave, cents } = freqToNoteData(displayFreq);
@@ -624,7 +675,9 @@
                             noteEl.textContent = "--";
                             centsEl.textContent = "";
                             statusEl.textContent = "Waiting for a stable signal…";
-                            filteredFreq = null;
+                            stableFreq = null;
+                            pendingFreq = null;
+                            pendingFrames = 0;
                             const guidance = highlightBestTarget(-1);
                             updateGuidance(guidance);
                         }
@@ -652,10 +705,15 @@
                         }
                     });
 
-                    smoothingInput.addEventListener("input", function () {
-                        const v = parseFloat(smoothingInput.value);
-                        smoothingAmount = isFinite(v) ? v : 0;
-                        smoothingValueEl.textContent = smoothingAmount.toFixed(2);
+                    stabilityInput.addEventListener("input", function () {
+                        const v = parseFloat(stabilityInput.value);
+                        stabilityThreshold = isFinite(v) ? v : 0;
+                        stabilityValueEl.textContent =
+                            stabilityThreshold <= 0
+                                ? "Off"
+                                : `${Math.round(stabilityThreshold)}¢`;
+                        pendingFreq = null;
+                        pendingFrames = 0;
                     });
 
                     function updateGuidance(guidance) {
