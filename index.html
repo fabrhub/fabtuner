@@ -123,6 +123,25 @@
                     margin-bottom: 0.4rem;
                 }
 
+                #fabtuner-widget .fabtuner-slider-row {
+                    display: grid;
+                    grid-template-columns: auto 1fr auto;
+                    align-items: center;
+                    gap: 0.6rem;
+                    width: 100%;
+                    max-width: 560px;
+                }
+
+                #fabtuner-widget input.fabtuner-slider {
+                    width: 100%;
+                    accent-color: #f97373;
+                }
+
+                #fabtuner-widget .fabtuner-slider-value {
+                    font-weight: 600;
+                    font-size: calc(0.85rem * var(--font-multiplier));
+                }
+
                 #fabtuner-widget .fabtuner-inline {
                     display: flex;
                     align-items: center;
@@ -186,6 +205,58 @@
                     opacity: 0.9;
                 }
 
+                #fabtuner-widget .fabtuner-guidance {
+                    margin-top: 0.6rem;
+                }
+
+                #fabtuner-widget .fabtuner-guidance input[type="range"] {
+                    width: 100%;
+                    accent-color: #f97373;
+                }
+
+                #fabtuner-widget .fabtuner-guidance-label {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 0.35rem;
+                    font-size: calc(0.85rem * var(--font-multiplier));
+                    font-weight: 600;
+                }
+
+                #fabtuner-widget .fabtuner-guidance-helper {
+                    font-size: calc(0.75rem * var(--font-multiplier));
+                    opacity: 0.7;
+                    margin-top: 0.25rem;
+                }
+
+                #fabtuner-widget .fabtuner-presets {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.4rem;
+                    margin-top: 0.4rem;
+                }
+
+                #fabtuner-widget .fabtuner-chip {
+                    border: 1px solid rgba(148, 163, 184, 0.5);
+                    background: rgba(15, 23, 42, 0.9);
+                    border-radius: 999px;
+                    padding: 0.35rem 0.7rem;
+                    font-size: calc(0.82rem * var(--font-multiplier));
+                    cursor: pointer;
+                    transition: background 120ms ease, border-color 120ms ease;
+                }
+
+                #fabtuner-widget .fabtuner-chip:hover {
+                    background: rgba(248, 113, 113, 0.14);
+                    border-color: #f97373;
+                }
+
+                #fabtuner-widget .fabtuner-chip.fabtuner-chip-active {
+                    background: rgba(248, 113, 113, 0.16);
+                    border-color: #f97373;
+                    color: #fecaca;
+                }
+
                 #fabtuner-widget .fabtuner-target-status strong {
                     font-weight: 600;
                 }
@@ -245,6 +316,25 @@
                 </div>
 
                 <div class="fabtuner-section">
+                    <div class="fabtuner-section-title">Input filtering</div>
+                    <div class="fabtuner-slider-row">
+                        <div class="fabtuner-label" aria-hidden="true">Smoothing</div>
+                        <input
+                            class="fabtuner-slider"
+                            type="range"
+                            min="0"
+                            max="0.9"
+                            step="0.05"
+                            value="0.35"
+                            data-fabtuner="smoothing"
+                            aria-label="Input smoothing factor"
+                        />
+                        <div class="fabtuner-slider-value" data-fabtuner="smoothing-value">0.35</div>
+                    </div>
+                    <div class="fabtuner-help">Higher values reduce jitter but react more slowly.</div>
+                </div>
+
+                <div class="fabtuner-section">
                     <div class="fabtuner-section-title">Target notes</div>
                     <div class="fabtuner-inline">
                         <input
@@ -262,8 +352,29 @@
                         Enter notes separated by spaces or commas (e.g. <code>E2 A2 D3 G3 B3 E4</code>).
                     </div>
                     <div class="fabtuner-target-list" data-fabtuner="targets-list"></div>
+                    <div class="fabtuner-presets" data-fabtuner="presets"></div>
+                    <div class="fabtuner-help">Select a preset to quickly load common tunings.</div>
                     <div class="fabtuner-target-status" data-fabtuner="target-status">
                         No detection relative to target notes yet.
+                    </div>
+                    <div class="fabtuner-guidance">
+                        <div class="fabtuner-guidance-label">
+                            <span>Pitch guidance</span>
+                            <span data-fabtuner="guidance-value">Centered</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="-50"
+                            max="50"
+                            step="1"
+                            value="0"
+                            data-fabtuner="guidance-slider"
+                            aria-label="Pitch direction toward closest target"
+                            disabled
+                        />
+                        <div class="fabtuner-guidance-helper" data-fabtuner="guidance-helper">
+                            Play a target note to see if you need to raise or lower the pitch.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -283,6 +394,12 @@
                     const applyTargetsBtn = root.querySelector('[data-fabtuner="apply-targets"]');
                     const targetsListEl = root.querySelector('[data-fabtuner="targets-list"]');
                     const targetStatusEl = root.querySelector('[data-fabtuner="target-status"]');
+                    const smoothingInput = root.querySelector('[data-fabtuner="smoothing"]');
+                    const smoothingValueEl = root.querySelector('[data-fabtuner="smoothing-value"]');
+                    const guidanceSlider = root.querySelector('[data-fabtuner="guidance-slider"]');
+                    const guidanceValueEl = root.querySelector('[data-fabtuner="guidance-value"]');
+                    const guidanceHelperEl = root.querySelector('[data-fabtuner="guidance-helper"]');
+                    const presetsEl = root.querySelector('[data-fabtuner="presets"]');
 
                     let audioContext = null;
                     let analyser = null;
@@ -290,6 +407,8 @@
                     let running = false;
                     let a4Ref = 440;
                     let targets = [];
+                    let smoothingAmount = parseFloat(smoothingInput.value) || 0;
+                    let filteredFreq = null;
 
                     const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F",
                         "F#", "G", "G#", "A", "A#", "B"];
@@ -366,7 +485,7 @@
                         if (!targets.length || freq <= 0 || !isFinite(freq)) {
                             targetStatusEl.textContent =
                                 "No detection relative to target notes yet.";
-                            return;
+                            return null;
                         }
                         let best = null;
                         let bestDiff = Infinity;
@@ -404,6 +523,8 @@
                             " " +
                             centsRounded +
                             " cents";
+
+                        return { target: best, cents, arrow };
                     }
 
                     function autoCorrelate(buffer, sampleRate) {
@@ -478,8 +599,17 @@
                         const freq = autoCorrelate(dataArray, sampleRate);
 
                         if (freq > 0 && isFinite(freq)) {
-                            freqEl.textContent = freq.toFixed(2) + " Hz";
-                            const { noteName, octave, cents } = freqToNoteData(freq);
+                            if (filteredFreq === null) {
+                                filteredFreq = freq;
+                            } else {
+                                filteredFreq =
+                                    smoothingAmount * filteredFreq +
+                                    (1 - smoothingAmount) * freq;
+                            }
+                            const displayFreq = filteredFreq;
+
+                            freqEl.textContent = displayFreq.toFixed(2) + " Hz";
+                            const { noteName, octave, cents } = freqToNoteData(displayFreq);
                             noteEl.textContent = noteName + octave;
                             const centsRounded = cents.toFixed(1);
                             let arrow = "✓";
@@ -487,13 +617,16 @@
                             else if (cents < -3) arrow = "↓";
                             centsEl.textContent = arrow + " " + centsRounded + " cents";
                             statusEl.textContent = "Signal detected.";
-                            highlightBestTarget(freq);
+                            const guidance = highlightBestTarget(displayFreq);
+                            updateGuidance(guidance);
                         } else {
                             freqEl.textContent = "-- Hz";
                             noteEl.textContent = "--";
                             centsEl.textContent = "";
                             statusEl.textContent = "Waiting for a stable signal…";
-                            highlightBestTarget(-1);
+                            filteredFreq = null;
+                            const guidance = highlightBestTarget(-1);
+                            updateGuidance(guidance);
                         }
 
                         requestAnimationFrame(loop);
@@ -519,8 +652,71 @@
                         }
                     });
 
+                    smoothingInput.addEventListener("input", function () {
+                        const v = parseFloat(smoothingInput.value);
+                        smoothingAmount = isFinite(v) ? v : 0;
+                        smoothingValueEl.textContent = smoothingAmount.toFixed(2);
+                    });
+
+                    function updateGuidance(guidance) {
+                        if (!guidance) {
+                            guidanceSlider.value = 0;
+                            guidanceSlider.disabled = true;
+                            guidanceValueEl.textContent = "Centered";
+                            guidanceHelperEl.textContent =
+                                "Play a target note to see if you need to raise or lower the pitch.";
+                            return;
+                        }
+
+                        const { cents, target } = guidance;
+                        const clamped = Math.max(-50, Math.min(50, cents));
+                        guidanceSlider.disabled = false;
+                        guidanceSlider.value = clamped.toFixed(0);
+
+                        if (cents > 3) {
+                            guidanceValueEl.textContent = "Raise pitch";
+                            guidanceHelperEl.textContent =
+                                "Increase pitch to reach " + target.token + ".";
+                        } else if (cents < -3) {
+                            guidanceValueEl.textContent = "Lower pitch";
+                            guidanceHelperEl.textContent =
+                                "Decrease pitch to reach " + target.token + ".";
+                        } else {
+                            guidanceValueEl.textContent = "In tune";
+                            guidanceHelperEl.textContent =
+                                "You are centered on " + target.token + ".";
+                        }
+                    }
+
+                    const PRESETS = [
+                        { label: "Guitar – Standard", notes: "E2 A2 D3 G3 B3 E4" },
+                        { label: "Guitar – Half Step Down", notes: "Eb2 Ab2 Db3 Gb3 Bb3 Eb4" },
+                        { label: "Ukulele – Standard", notes: "G4 C4 E4 A4" },
+                    ];
+
+                    function buildPresets() {
+                        const frag = document.createDocumentFragment();
+                        PRESETS.forEach((preset) => {
+                            const btn = document.createElement("button");
+                            btn.type = "button";
+                            btn.className = "fabtuner-chip";
+                            btn.textContent = preset.label;
+                            btn.addEventListener("click", () => {
+                                targetsInput.value = preset.notes;
+                                rebuildTargets();
+                                presetsEl
+                                    .querySelectorAll(".fabtuner-chip")
+                                    .forEach((chip) => chip.classList.remove("fabtuner-chip-active"));
+                                btn.classList.add("fabtuner-chip-active");
+                            });
+                            frag.appendChild(btn);
+                        });
+                        presetsEl.appendChild(frag);
+                    }
+
                     // initialize targets on load
                     rebuildTargets();
+                    buildPresets();
                 })();
             </script>
         </div>
