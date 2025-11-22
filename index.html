@@ -6,7 +6,513 @@
     <title>Fabtuner</title>
 </head>
 <body>
-    <h1>Welcome to Fabtuner</h1>
-    <p>This is a basic HTML5 page.</p>
+    <div id="fabtuner"
+        style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div id="fabtuner-widget">
+            <style>
+                #fabtuner-widget {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+                    color: #f5f5f5;
+                    --font-multiplier: 1.25;
+                }
+
+                #fabtuner-widget .fabtuner-card {
+                    width: 100%;
+                    max-width: 720px;
+                    margin: 1.5rem auto;
+                    background: #111827;
+                    border-radius: 1.25rem;
+                    padding: 1.5rem 1.7rem;
+                    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+                    box-sizing: border-box;
+                }
+
+                #fabtuner-widget h2 {
+                    margin: 0 0 0.15rem;
+                    font-size: calc(1.4rem * var(--font-multiplier));
+                    display: flex;
+                    align-items: baseline;
+                    justify-content: space-between;
+                }
+
+                #fabtuner-widget .fabtuner-subtitle {
+                    font-size: calc(0.8rem * var(--font-multiplier));
+                    opacity: 0.7;
+                    margin-bottom: 1rem;
+                }
+
+                #fabtuner-widget button.fabtuner-btn {
+                    border: none;
+                    border-radius: 999px;
+                    padding: 0.55rem 1.35rem;
+                    font-size: calc(0.9rem * var(--font-multiplier));
+                    cursor: pointer;
+                    background: #f97373;
+                    color: #111827;
+                    font-weight: 600;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                }
+
+                #fabtuner-widget button.fabtuner-btn:disabled {
+                    opacity: 0.5;
+                    cursor: default;
+                }
+
+                #fabtuner-widget .fabtuner-row {
+                    display: flex;
+                    gap: 1rem;
+                    margin: 1rem 0 0.6rem;
+                }
+
+                #fabtuner-widget .fabtuner-block {
+                    flex: 1;
+                    background: rgba(15, 23, 42, 0.8);
+                    padding: 0.7rem 0.9rem;
+                    border-radius: 0.9rem;
+                    box-sizing: border-box;
+                }
+
+                #fabtuner-widget .fabtuner-label {
+                    font-size: calc(0.75rem * var(--font-multiplier));
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    opacity: 0.65;
+                    margin-bottom: 0.2rem;
+                }
+
+                #fabtuner-widget .fabtuner-value-main {
+                    font-size: calc(1.6rem * var(--font-multiplier));
+                    font-weight: 700;
+                    line-height: 1.2;
+                }
+
+                #fabtuner-widget .fabtuner-value-sub {
+                    font-size: calc(0.9rem * var(--font-multiplier));
+                    opacity: 0.8;
+                    margin-top: 0.15rem;
+                }
+
+                #fabtuner-widget .fabtuner-note {
+                    font-size: calc(1.8rem * var(--font-multiplier));
+                    font-weight: 700;
+                }
+
+                #fabtuner-widget .fabtuner-cents {
+                    font-size: calc(0.9rem * var(--font-multiplier));
+                    margin-top: 0.25rem;
+                }
+
+                #fabtuner-widget .fabtuner-status {
+                    font-size: calc(0.8rem * var(--font-multiplier));
+                    opacity: 0.8;
+                    margin-top: 0.4rem;
+                }
+
+                #fabtuner-widget .fabtuner-section {
+                    margin-top: 1rem;
+                    padding-top: 0.8rem;
+                    border-top: 1px solid rgba(148, 163, 184, 0.35);
+                }
+
+                #fabtuner-widget .fabtuner-section-title {
+                    font-size: calc(0.9rem * var(--font-multiplier));
+                    font-weight: 600;
+                    margin-bottom: 0.4rem;
+                }
+
+                #fabtuner-widget .fabtuner-inline {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                }
+
+                #fabtuner-widget input.fabtuner-input {
+                    background: #020617;
+                    border-radius: 999px;
+                    border: 1px solid rgba(148, 163, 184, 0.6);
+                    padding: 0.35rem 0.75rem;
+                    font-size: calc(0.85rem * var(--font-multiplier));
+                    color: #e5e7eb;
+                    outline: none;
+                    min-width: 0;
+                }
+
+                #fabtuner-widget input.fabtuner-input:focus {
+                    border-color: #f97373;
+                    box-shadow: 0 0 0 1px rgba(249, 115, 115, 0.4);
+                }
+
+                #fabtuner-widget .fabtuner-help {
+                    font-size: calc(0.75rem * var(--font-multiplier));
+                    opacity: 0.7;
+                    margin-top: 0.3rem;
+                }
+
+                #fabtuner-widget .fabtuner-target-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.35rem;
+                    margin-top: 0.5rem;
+                }
+
+                #fabtuner-widget .fabtuner-pill {
+                    font-size: calc(0.78rem * var(--font-multiplier));
+                    padding: 0.2rem 0.55rem;
+                    border-radius: 999px;
+                    background: rgba(15, 23, 42, 0.9);
+                    border: 1px solid rgba(148, 163, 184, 0.5);
+                    display: inline-flex;
+                    align-items: baseline;
+                    gap: 0.25rem;
+                }
+
+                #fabtuner-widget .fabtuner-pill span.fabtuner-pill-note {
+                    font-weight: 600;
+                }
+
+                #fabtuner-widget .fabtuner-pill.fabtuner-pill-active {
+                    background: rgba(248, 113, 113, 0.16);
+                    border-color: #f97373;
+                    color: #fecaca;
+                }
+
+                #fabtuner-widget .fabtuner-target-status {
+                    font-size: calc(0.8rem * var(--font-multiplier));
+                    margin-top: 0.45rem;
+                    opacity: 0.9;
+                }
+
+                #fabtuner-widget .fabtuner-target-status strong {
+                    font-weight: 600;
+                }
+
+                @media (max-width: 480px) {
+                    #fabtuner-widget .fabtuner-card {
+                        margin: 1rem;
+                        padding: 1.1rem 1.2rem;
+                    }
+
+                    #fabtuner-widget .fabtuner-row {
+                        flex-direction: column;
+                    }
+                }
+            </style>
+
+            <div class="fabtuner-card">
+                <h2>
+                    FabTuner
+                    <button class="fabtuner-btn" type="button" data-fabtuner="start">
+                        🎙️ Avvia
+                    </button>
+                </h2>
+                <div class="fabtuner-subtitle">
+                    Accordatore sperimentale – usa il microfono (HTTPS richiesto).
+                </div>
+
+                <div class="fabtuner-row">
+                    <div class="fabtuner-block">
+                        <div class="fabtuner-label">Frequenza rilevata</div>
+                        <div class="fabtuner-value-main" data-fabtuner="freq">-- Hz</div>
+                        <div class="fabtuner-value-sub fabtuner-status" data-fabtuner="status">
+                            In attesa…
+                        </div>
+                    </div>
+                    <div class="fabtuner-block">
+                        <div class="fabtuner-label">Nota stimata (globale)</div>
+                        <div class="fabtuner-note" data-fabtuner="note">--</div>
+                        <div class="fabtuner-cents" data-fabtuner="cents"></div>
+                    </div>
+                </div>
+
+                <div class="fabtuner-section">
+                    <div class="fabtuner-section-title">Frequenza di riferimento A4</div>
+                    <div class="fabtuner-inline">
+                        <input class="fabtuner-input" type="number" min="400" max="480" step="0.1" value="440"
+                            data-fabtuner="a4" />
+                        <span class="fabtuner-help">Default 440 Hz – usato per note e target.</span>
+                    </div>
+                </div>
+
+                <div class="fabtuner-section">
+                    <div class="fabtuner-section-title">Note target</div>
+                    <div class="fabtuner-inline">
+                        <input class="fabtuner-input" type="text" value="E2 A2 D3 G3 B3 E4"
+                            placeholder="E2 A2 D3 G3 B3 E4" data-fabtuner="targets-input" />
+                        <button class="fabtuner-btn" type="button" data-fabtuner="apply-targets">
+                            Imposta
+                        </button>
+                    </div>
+                    <div class="fabtuner-help">
+                        Inserisci note separate da spazio o virgola (es: <code>E2 A2 D3 G3 B3 E4</code>).
+                    </div>
+                    <div class="fabtuner-target-list" data-fabtuner="targets-list"></div>
+                    <div class="fabtuner-target-status" data-fabtuner="target-status">
+                        Nessuna rilevazione ancora rispetto alle target.
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                (function () {
+                    const root = document.getElementById("fabtuner-widget");
+                    if (!root) return;
+
+                    const startBtn = root.querySelector('[data-fabtuner="start"]');
+                    const freqEl = root.querySelector('[data-fabtuner="freq"]');
+                    const noteEl = root.querySelector('[data-fabtuner="note"]');
+                    const centsEl = root.querySelector('[data-fabtuner="cents"]');
+                    const statusEl = root.querySelector('[data-fabtuner="status"]');
+                    const a4Input = root.querySelector('[data-fabtuner="a4"]');
+                    const targetsInput = root.querySelector('[data-fabtuner="targets-input"]');
+                    const applyTargetsBtn = root.querySelector('[data-fabtuner="apply-targets"]');
+                    const targetsListEl = root.querySelector('[data-fabtuner="targets-list"]');
+                    const targetStatusEl = root.querySelector('[data-fabtuner="target-status"]');
+
+                    let audioContext = null;
+                    let analyser = null;
+                    let dataArray = null;
+                    let running = false;
+                    let a4Ref = 440;
+                    let targets = [];
+
+                    const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F",
+                        "F#", "G", "G#", "A", "A#", "B"];
+
+                    function freqToNoteData(freq) {
+                        const A4_MIDI = 69;
+                        const midi = 12 * Math.log2(freq / a4Ref) + A4_MIDI;
+                        const midiRounded = Math.round(midi);
+                        const noteIndex = (midiRounded + 1200) % 12;
+                        const octave = Math.floor(midiRounded / 12) - 1;
+                        const noteName = NOTE_NAMES[noteIndex];
+                        const freqFromMidi = a4Ref * Math.pow(2, (midiRounded - A4_MIDI) / 12);
+                        const cents = 1200 * Math.log2(freq / freqFromMidi);
+                        return { noteName, octave, cents, midiRounded, freqFromMidi };
+                    }
+
+                    function parseNoteToken(token) {
+                        const t = token.trim();
+                        if (!t) return null;
+                        const m = t.match(/^([A-Ga-g])([b#]?)(-?\d)$/);
+                        if (!m) return null;
+                        let [, letter, accidental, octaveStr] = m;
+                        letter = letter.toUpperCase();
+                        accidental = accidental || "";
+                        const octave = parseInt(octaveStr, 10);
+                        const BASE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+                        if (!(letter in BASE)) return null;
+                        let idx = BASE[letter];
+                        if (accidental === "#") idx += 1;
+                        if (accidental === "b" || accidental === "B") idx -= 1;
+                        idx = ((idx % 12) + 12) % 12;
+                        const midi = (octave + 1) * 12 + idx;
+                        const freq = a4Ref * Math.pow(2, (midi - 69) / 12);
+                        return {
+                            token: letter + accidental + octave,
+                            midi,
+                            freq,
+                        };
+                    }
+
+                    function rebuildTargets() {
+                        const raw = (targetsInput.value || "").trim();
+                        const tokens = raw.split(/[,\s]+/).filter(Boolean);
+                        targets = tokens
+                            .map(parseNoteToken)
+                            .filter(Boolean);
+
+                        targetsListEl.innerHTML = "";
+                        if (!targets.length) {
+                            targetsListEl.innerHTML =
+                                '<div class="fabtuner-help">Nessuna nota target valida.</div>';
+                            return;
+                        }
+
+                        const frag = document.createDocumentFragment();
+                        targets.forEach((t, idx) => {
+                            const pill = document.createElement("div");
+                            pill.className = "fabtuner-pill";
+                            pill.dataset.index = String(idx);
+                            pill.innerHTML =
+                                '<span class="fabtuner-pill-note">' +
+                                t.token +
+                                "</span><span>" +
+                                t.freq.toFixed(1) +
+                                " Hz</span>";
+                            frag.appendChild(pill);
+                        });
+                        targetsListEl.appendChild(frag);
+                    }
+
+                    function highlightBestTarget(freq) {
+                        const pills = targetsListEl.querySelectorAll(".fabtuner-pill");
+                        pills.forEach((p) => p.classList.remove("fabtuner-pill-active"));
+                        if (!targets.length || freq <= 0 || !isFinite(freq)) {
+                            targetStatusEl.textContent =
+                                "Nessuna rilevazione ancora rispetto alle target.";
+                            return;
+                        }
+                        let best = null;
+                        let bestDiff = Infinity;
+                        let bestIndex = -1;
+                        targets.forEach((t, idx) => {
+                            const diff = Math.abs(freq - t.freq);
+                            if (diff < bestDiff) {
+                                bestDiff = diff;
+                                best = t;
+                                bestIndex = idx;
+                            }
+                        });
+                        if (!best) return;
+
+                        const bestPill = targetsListEl.querySelector(
+                            '.fabtuner-pill[data-index="' + bestIndex + '"]'
+                        );
+                        if (bestPill) {
+                            bestPill.classList.add("fabtuner-pill-active");
+                        }
+
+                        const cents = 1200 * Math.log2(freq / best.freq);
+                        const centsRounded = cents.toFixed(1);
+                        let arrow = "✓";
+                        if (cents > 3) arrow = "↑";
+                        else if (cents < -3) arrow = "↓";
+
+                        targetStatusEl.innerHTML =
+                            'Target più vicina: <strong>' +
+                            best.token +
+                            "</strong> (" +
+                            best.freq.toFixed(1) +
+                            " Hz) – " +
+                            arrow +
+                            " " +
+                            centsRounded +
+                            " cents";
+                    }
+
+                    function autoCorrelate(buffer, sampleRate) {
+                        const SIZE = buffer.length;
+                        const MAX_SAMPLES = Math.floor(SIZE / 2);
+                        let bestOffset = -1;
+                        let bestCorrelation = 0;
+                        let rms = 0;
+
+                        for (let i = 0; i < SIZE; i++) {
+                            const val = buffer[i];
+                            rms += val * val;
+                        }
+                        rms = Math.sqrt(rms / SIZE);
+                        if (rms < 0.01) {
+                            return -1;
+                        }
+
+                        let lastCorrelation = 1;
+                        for (let offset = 1; offset < MAX_SAMPLES; offset++) {
+                            let correlation = 0;
+                            for (let i = 0; i < MAX_SAMPLES; i++) {
+                                correlation += Math.abs(buffer[i] - buffer[i + offset]);
+                            }
+                            correlation = 1 - correlation / MAX_SAMPLES;
+
+                            if (correlation > 0.9 && correlation > lastCorrelation) {
+                                if (correlation > bestCorrelation) {
+                                    bestCorrelation = correlation;
+                                    bestOffset = offset;
+                                }
+                            }
+                            lastCorrelation = correlation;
+                        }
+
+                        if (bestCorrelation > 0.9 && bestOffset !== -1) {
+                            return sampleRate / bestOffset;
+                        }
+                        return -1;
+                    }
+
+                    async function start() {
+                        if (running) return;
+                        running = true;
+                        startBtn.disabled = true;
+                        statusEl.textContent = "Richiesta accesso al microfono…";
+
+                        try {
+                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            const source = audioContext.createMediaStreamSource(stream);
+
+                            analyser = audioContext.createAnalyser();
+                            analyser.fftSize = 2048;
+                            dataArray = new Float32Array(analyser.fftSize);
+                            source.connect(analyser);
+
+                            statusEl.textContent = "Ascolto in corso… suona una nota.";
+                            loop();
+                        } catch (err) {
+                            console.error(err);
+                            statusEl.textContent = "Errore accesso microfono: " + err.message;
+                            startBtn.disabled = false;
+                            running = false;
+                        }
+                    }
+
+                    function loop() {
+                        if (!running || !analyser) return;
+                        analyser.getFloatTimeDomainData(dataArray);
+                        const sampleRate = audioContext.sampleRate;
+                        const freq = autoCorrelate(dataArray, sampleRate);
+
+                        if (freq > 0 && isFinite(freq)) {
+                            freqEl.textContent = freq.toFixed(2) + " Hz";
+                            const { noteName, octave, cents } = freqToNoteData(freq);
+                            noteEl.textContent = noteName + octave;
+                            const centsRounded = cents.toFixed(1);
+                            let arrow = "✓";
+                            if (cents > 3) arrow = "↑";
+                            else if (cents < -3) arrow = "↓";
+                            centsEl.textContent = arrow + " " + centsRounded + " cents";
+                            statusEl.textContent = "Segnale rilevato.";
+                            highlightBestTarget(freq);
+                        } else {
+                            freqEl.textContent = "-- Hz";
+                            noteEl.textContent = "--";
+                            centsEl.textContent = "";
+                            statusEl.textContent = "In attesa di un segnale stabile…";
+                            highlightBestTarget(-1);
+                        }
+
+                        requestAnimationFrame(loop);
+                    }
+
+                    startBtn.addEventListener("click", start);
+
+                    a4Input.addEventListener("input", function () {
+                        const v = parseFloat(a4Input.value);
+                        if (!isFinite(v) || v <= 0) {
+                            a4Ref = 440;
+                        } else {
+                            a4Ref = v;
+                        }
+                        rebuildTargets();
+                    });
+
+                    applyTargetsBtn.addEventListener("click", rebuildTargets);
+                    targetsInput.addEventListener("keydown", function (e) {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            rebuildTargets();
+                        }
+                    });
+
+                    // inizializza target all’avvio
+                    rebuildTargets();
+                })();
+            </script>
+        </div>
+
+    </div>
 </body>
+
 </html>
